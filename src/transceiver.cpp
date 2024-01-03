@@ -3,9 +3,13 @@
 #include <EBYTE.h>
 #include <Ticker.h>
 #include <CircularBuffer.h>
+#include <TinyGPSPlus.h>
 /* User Libraries */
 #include "hard_defs.h"
 #include "MPU_defs.h"
+
+/*GPS TOOLS*/
+TinyGPSPlus gps;
 
 /* ESP TOOLS */
 CircularBuffer<state_t, BUFFER_SIZE/2> state_buffer;
@@ -28,6 +32,7 @@ void TaskSetup();
 /* GPS State Machine Functions */
 void RingBuffer_state(CAN_frame_t txMsg); 
 void canFilter(CAN_frame_t rxMsg);
+void gpsinfo();
 /* Radio State Machine Functions */
 
 /* Interrupts routine */
@@ -36,6 +41,7 @@ void ticker1HzISR();
 void setup() 
 {
   Serial.begin(115200);
+  Serial2.begin(GPS_Baud_Rate, SERIAL_8N1, GPS_TX, GPS_RX);
 
   pinConfig(); // Setup Pin
 
@@ -120,6 +126,11 @@ void GPS_StateMachine(void *pvParameters)
     RingBuffer_state(tx_frame); 
 
     canFilter(rx_frame);
+
+    while (Serial2.available() > 0) 
+      if (gps.encode(Serial2.read())) 
+        gpsinfo();
+
     vTaskDelay(1000);
   }
 }
@@ -325,4 +336,31 @@ void RadioStateMachine(void *pvParameters)
 void ticker1HzISR()
 {
   state_buffer.push(GPS_ST);
+}
+
+void gpsinfo()
+{
+  Serial.print("Location: "); 
+  if (gps.location.isValid())
+  {
+    volatile_packet.latitude = gps.location.lat();
+    volatile_packet.longitude = gps.location.lng();
+    
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(",");
+    Serial.print(gps.location.lng(), 6);
+  }
+  else {
+    Serial.print(F("INVALID"));
+  }
+
+  if (gps.satellites.isValid())
+  {
+    Serial.print(F("  Satelites: "));
+    Serial.print(gps.satellites.value());
+  } else {
+    Serial.print(F("INVALID"));
+  }
+
+  Serial.println();
 }

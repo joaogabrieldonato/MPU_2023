@@ -20,4 +20,9 @@
 #define CAN_TX_id GPIO_NUM_12
 #define CAN_RX_id GPIO_NUM_15
 
+/*GPS definitions*/
+#define GPS_RX GPIO_NUM_23
+#define GPS_TX GPIO_NUM_19
+#define GPS_Baud_Rate 9600
+
 #endif
