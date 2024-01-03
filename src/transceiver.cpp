@@ -41,7 +41,7 @@ void ticker1HzISR();
 void setup() 
 {
   Serial.begin(115200);
-  Serial2.begin(GPS_Baud_Rate, SERIAL_8N1, GPS_TX, GPS_RX);
+  Serial1.begin(GPS_Baud_Rate, SERIAL_8N1, GPS_TX, GPS_RX);
 
   pinConfig(); // Setup Pin
 
